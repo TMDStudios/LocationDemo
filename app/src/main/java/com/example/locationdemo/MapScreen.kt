@@ -21,7 +21,8 @@ fun MapScreen() {
             modifier = Modifier.fillMaxSize(),
             uiSettings = uiSettings,
             onMapLongClick = {
-                Toast.makeText(context, "Hi", Toast.LENGTH_LONG).show()
+                // Display Latitude and Longitude on long click
+                Toast.makeText(context, "Lat: ${it.latitude}\n Long: ${it.longitude}", Toast.LENGTH_LONG).show()
             }
         )
     }
