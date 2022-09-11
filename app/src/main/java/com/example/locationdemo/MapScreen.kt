@@ -21,7 +21,7 @@ fun MapScreen() {
         MapUiSettings(zoomControlsEnabled = false)
     }
     var pointOfInterest by remember {
-        mutableStateOf(mutableListOf(0.0,0.0))
+        mutableStateOf(mutableListOf(200.0,200.0))
     }
     Scaffold() {
         GoogleMap(
@@ -33,16 +33,18 @@ fun MapScreen() {
                 pointOfInterest = mutableListOf(it.latitude, it.longitude)
             }
         ){
-            Marker(
-                position = LatLng(pointOfInterest[0], pointOfInterest[1]),
-                title = "Your Point of Interest",
-                snippet = "This is a test",
-                icon = BitmapDescriptorFactory.defaultMarker(),
-                onClick = {
-                    it.showInfoWindow()
-                    true
-                }
-            )
+            if(pointOfInterest[0]<=180){
+                Marker(
+                    position = LatLng(pointOfInterest[0], pointOfInterest[1]),
+                    title = "Your Point of Interest",
+                    snippet = "This is a test",
+                    icon = BitmapDescriptorFactory.defaultMarker(),
+                    onClick = {
+                        it.showInfoWindow()
+                        true
+                    }
+                )
+            }
         }
     }
 }
