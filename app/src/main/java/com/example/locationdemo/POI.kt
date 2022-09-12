@@ -1,3 +1,12 @@
 package com.example.locationdemo
 
-data class POI(val lat: Double, val long: Double, var name: String)
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "POITable")
+data class POI(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int,
+    val latitude: Double,
+    val longitude: Double,
+    var name: String)

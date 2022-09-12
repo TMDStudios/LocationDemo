@@ -1,6 +1,6 @@
 package com.example.locationdemo
 
-import android.util.Log
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -13,15 +13,25 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun MapScreen() {
     val context = LocalContext.current
     val uiSettings = remember {
         MapUiSettings(zoomControlsEnabled = false)
     }
+
+    val poiDao by lazy { POIDatabase.getDatabase(context).poiDao() }
+    val repository by lazy { POIRepository(poiDao) }
+
     var pointsOfInterest by remember {
-        mutableStateOf(mutableListOf(POI(200.0,200.0, "")))
+        mutableStateOf(mutableListOf<POI>())
     }
     var openDialog by remember {
         mutableStateOf(false)
@@ -29,6 +39,13 @@ fun MapScreen() {
     var myPOI by remember {
         mutableStateOf("")
     }
+
+    var currentPOI: POI? = null
+
+    var loadPOIs by remember {
+        mutableStateOf(true)
+    }
+
     Scaffold() {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
@@ -37,18 +54,24 @@ fun MapScreen() {
                 openDialog=!openDialog
                 // Display Latitude and Longitude on long click
                 Toast.makeText(context, "Lat: ${it.latitude}\n Long: ${it.longitude}", Toast.LENGTH_LONG).show()
-                pointsOfInterest.add(POI(it.latitude, it.longitude, myPOI))
+
+                currentPOI = POI(0, it.latitude, it.longitude, myPOI)
             }
         ){
+            if(loadPOIs){
+                CoroutineScope(IO).launch {
+                    pointsOfInterest = repository.getPOIs as MutableList<POI>
+                    loadPOIs=false
+                }
+            }
             for(poi:POI in pointsOfInterest){
-                if(poi.lat<=180){
+                if(poi.latitude<=180){
                     Marker(
-                        position = LatLng(poi.lat, poi.long),
+                        position = LatLng(poi.latitude, poi.longitude),
                         title = poi.name,
-                        snippet = "${poi.lat.toString().substring(0,7)}, ${poi.long.toString().substring(0,7)}",
+                        snippet = "${poi.latitude.toString().substring(0,7)}, ${poi.longitude.toString().substring(0,7)}",
                         icon = BitmapDescriptorFactory.defaultMarker(),
                         onClick = {
-//                            Log.d("MAIN","${poi.name}, ${poi.lat}, ${poi.long}")
                             it.showInfoWindow()
                             true
                         }
@@ -78,7 +101,14 @@ fun MapScreen() {
                             Button(
                                 modifier = Modifier.fillMaxWidth(),
                                 onClick = {
-                                    pointsOfInterest[pointsOfInterest.size-1].name = myPOI
+                                    if(currentPOI!=null){
+                                        currentPOI!!.name = myPOI
+                                        pointsOfInterest.add(POI(0, currentPOI!!.latitude, currentPOI!!.longitude, myPOI))
+                                        CoroutineScope(IO).launch {
+                                            repository.addPOI(currentPOI!!)
+                                            loadPOIs=true
+                                        }
+                                    }
                                     myPOI = ""
                                     openDialog = false
                                 }
@@ -89,6 +119,15 @@ fun MapScreen() {
                     }
                 )
             }
+        }
+        Button(onClick = {
+            CoroutineScope(IO).launch {
+                repository.deleteAll()
+                pointsOfInterest.clear()
+                loadPOIs=true
+            }
+        }) {
+            Text(text = "Delete POIs")
         }
     }
 }
