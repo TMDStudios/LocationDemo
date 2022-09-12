@@ -1,5 +1,6 @@
 package com.example.locationdemo
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -19,8 +20,8 @@ fun MapScreen() {
     val uiSettings = remember {
         MapUiSettings(zoomControlsEnabled = false)
     }
-    var pointOfInterest by remember {
-        mutableStateOf(mutableListOf(200.0,200.0))
+    var pointsOfInterest by remember {
+        mutableStateOf(mutableListOf(POI(200.0,200.0, "")))
     }
     var openDialog by remember {
         mutableStateOf(false)
@@ -36,24 +37,28 @@ fun MapScreen() {
                 openDialog=!openDialog
                 // Display Latitude and Longitude on long click
                 Toast.makeText(context, "Lat: ${it.latitude}\n Long: ${it.longitude}", Toast.LENGTH_LONG).show()
-                pointOfInterest = mutableListOf(it.latitude, it.longitude)
+                pointsOfInterest.add(POI(it.latitude, it.longitude, myPOI))
             }
         ){
-            if(pointOfInterest[0]<=180){
-                Marker(
-                    position = LatLng(pointOfInterest[0], pointOfInterest[1]),
-                    title = myPOI,
-                    snippet = "${pointOfInterest[0].toString().substring(0,7)}, ${pointOfInterest[1].toString().substring(0,7)}",
-                    icon = BitmapDescriptorFactory.defaultMarker(),
-                    onClick = {
-                        it.showInfoWindow()
-                        true
-                    }
-                )
+            for(poi:POI in pointsOfInterest){
+                if(poi.lat<=180){
+                    Marker(
+                        position = LatLng(poi.lat, poi.long),
+                        title = poi.name,
+                        snippet = "${poi.lat.toString().substring(0,7)}, ${poi.long.toString().substring(0,7)}",
+                        icon = BitmapDescriptorFactory.defaultMarker(),
+                        onClick = {
+//                            Log.d("MAIN","${poi.name}, ${poi.lat}, ${poi.long}")
+                            it.showInfoWindow()
+                            true
+                        }
+                    )
+                }
             }
             if(openDialog){
                 AlertDialog(
                     onDismissRequest = {
+                        myPOI = ""
                         openDialog = false
                     },
                     title = {
@@ -72,7 +77,11 @@ fun MapScreen() {
                         ) {
                             Button(
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = { openDialog = false }
+                                onClick = {
+                                    pointsOfInterest[pointsOfInterest.size-1].name = myPOI
+                                    myPOI = ""
+                                    openDialog = false
+                                }
                             ) {
                                 Text("Save POI")
                             }
