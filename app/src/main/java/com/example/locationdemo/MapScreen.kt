@@ -2,11 +2,14 @@ package com.example.locationdemo
 
 import android.annotation.SuppressLint
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
@@ -43,6 +46,10 @@ fun MapScreen() {
     var currentPOI: POI? = null
 
     var loadPOIs by remember {
+        mutableStateOf(true)
+    }
+
+    var showPOIs by remember {
         mutableStateOf(true)
     }
 
@@ -120,14 +127,37 @@ fun MapScreen() {
                 )
             }
         }
-        Button(onClick = {
-            CoroutineScope(IO).launch {
-                repository.deleteAll()
-                pointsOfInterest.clear()
-                loadPOIs=true
+        Row(horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)) {
+            Button(onClick = {
+                CoroutineScope(IO).launch {
+                    repository.deleteAll()
+                    pointsOfInterest.clear()
+                    loadPOIs=true
+                }
+            },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.White,
+                    contentColor = colorResource(id = R.color.purple_500)
+                )) {
+                Text(text = "Delete POIs")
             }
-        }) {
-            Text(text = "Delete POIs")
+            Button(onClick = {
+                showPOIs=!showPOIs
+                if(showPOIs){
+                    loadPOIs=true
+                }else{
+                    pointsOfInterest = mutableListOf()
+                }
+            },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.White,
+                    contentColor = colorResource(id = R.color.purple_500)
+                )) {
+                Text(text = if(showPOIs){"Hide POIs"}else{"Show POIs"})
+            }
         }
     }
 }
