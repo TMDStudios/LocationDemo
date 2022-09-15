@@ -11,8 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.locationdemo.ui.theme.LocationDemoTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var poiDao: POIDao
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -22,7 +28,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    MapScreen()
+                    MapScreen(poiDao)
                 }
             }
         }
@@ -33,6 +39,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DefaultPreview() {
     LocationDemoTheme {
-        MapScreen()
+//        MapScreen()
     }
 }

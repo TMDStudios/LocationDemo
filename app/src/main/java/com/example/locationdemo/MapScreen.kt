@@ -24,13 +24,12 @@ import kotlinx.coroutines.withContext
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun MapScreen() {
+fun MapScreen(poiDao: POIDao) {
     val context = LocalContext.current
     val uiSettings = remember {
         MapUiSettings(zoomControlsEnabled = false)
     }
 
-    val poiDao by lazy { POIDatabase.getDatabase(context).poiDao() }
     val repository by lazy { POIRepository(poiDao) }
 
     var pointsOfInterest by remember {
