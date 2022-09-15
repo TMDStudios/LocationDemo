@@ -2,7 +2,6 @@ package com.example.locationdemo
 
 import android.annotation.SuppressLint
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -18,9 +17,7 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -52,6 +49,10 @@ fun MapScreen(poiDao: POIDao) {
         mutableStateOf(true)
     }
 
+    var deleteMarker by remember {
+        mutableStateOf(false)
+    }
+
     Scaffold() {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
@@ -80,6 +81,10 @@ fun MapScreen(poiDao: POIDao) {
                         onClick = {
                             it.showInfoWindow()
                             true
+                        },
+                        onInfoWindowLongClick = {
+                            currentPOI = poi
+                            deleteMarker = true
                         }
                     )
                 }
@@ -120,6 +125,43 @@ fun MapScreen(poiDao: POIDao) {
                                 }
                             ) {
                                 Text("Save POI")
+                            }
+                        }
+                    }
+                )
+            }
+            if(deleteMarker){
+                AlertDialog(
+                    onDismissRequest = {
+                        myPOI = ""
+                        deleteMarker = false
+                    },
+                    title = {
+                        Text(text = "Delete POI?")
+                    },
+                    buttons = {
+                        Row(
+                            modifier = Modifier.padding(all = 8.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(
+                                onClick = {
+                                    loadPOIs=true
+                                    deleteMarker = false
+                                }
+                            ) {
+                                Text("Cancel")
+                            }
+                            Button(
+                                onClick = {
+                                    CoroutineScope(IO).launch {
+                                        repository.deletePOI(currentPOI!!)
+                                        pointsOfInterest.remove(currentPOI)
+                                    }
+                                    deleteMarker = false
+                                }
+                            ) {
+                                Text("Delete POI")
                             }
                         }
                     }
