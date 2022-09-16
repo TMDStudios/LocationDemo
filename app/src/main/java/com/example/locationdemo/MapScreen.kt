@@ -49,7 +49,7 @@ fun MapScreen(poiDao: POIDao) {
         mutableStateOf(true)
     }
 
-    var deleteMarker by remember {
+    var updateDelete by remember {
         mutableStateOf(false)
     }
 
@@ -84,7 +84,7 @@ fun MapScreen(poiDao: POIDao) {
                         },
                         onInfoWindowLongClick = {
                             currentPOI = poi
-                            deleteMarker = true
+                            updateDelete = true
                         }
                     )
                 }
@@ -130,14 +130,20 @@ fun MapScreen(poiDao: POIDao) {
                     }
                 )
             }
-            if(deleteMarker){
+            if(updateDelete){
                 AlertDialog(
                     onDismissRequest = {
                         myPOI = ""
-                        deleteMarker = false
+                        updateDelete = false
                     },
                     title = {
-                        Text(text = "Delete POI?")
+                        Text(text = "Update/Delete POI?")
+                    },
+                    text = {
+                        TextField(
+                            value = myPOI,
+                            onValueChange = { myPOI = it }
+                        )
                     },
                     buttons = {
                         Row(
@@ -146,11 +152,18 @@ fun MapScreen(poiDao: POIDao) {
                         ) {
                             Button(
                                 onClick = {
-                                    loadPOIs=true
-                                    deleteMarker = false
+                                    currentPOI!!.name = myPOI
+                                    pointsOfInterest.remove(currentPOI)
+                                    pointsOfInterest.add(POI(0, currentPOI!!.latitude, currentPOI!!.longitude, myPOI))
+                                    CoroutineScope(IO).launch {
+                                        repository.updatePOI(currentPOI!!)
+                                        loadPOIs=true
+                                    }
+                                    myPOI = ""
+                                    updateDelete = false
                                 }
                             ) {
-                                Text("Cancel")
+                                Text("Update POI")
                             }
                             Button(
                                 onClick = {
@@ -158,7 +171,7 @@ fun MapScreen(poiDao: POIDao) {
                                         repository.deletePOI(currentPOI!!)
                                         pointsOfInterest.remove(currentPOI)
                                     }
-                                    deleteMarker = false
+                                    updateDelete = false
                                 }
                             ) {
                                 Text("Delete POI")
