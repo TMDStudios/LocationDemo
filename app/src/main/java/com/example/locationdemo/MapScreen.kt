@@ -2,10 +2,14 @@ package com.example.locationdemo
 
 import android.annotation.SuppressLint
 import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -91,6 +95,7 @@ fun MapScreen(poiDao: POIDao) {
             }
             if(openDialog){
                 AlertDialog(
+                    modifier = Modifier.border(2.dp, colorResource(id = R.color.purple_500)),
                     onDismissRequest = {
                         myPOI = ""
                         openDialog = false
@@ -132,23 +137,27 @@ fun MapScreen(poiDao: POIDao) {
             }
             if(updateDelete){
                 AlertDialog(
+                    modifier = Modifier.border(2.dp, colorResource(id = R.color.purple_500)),
                     onDismissRequest = {
                         myPOI = ""
                         updateDelete = false
                     },
                     title = {
-                        Text(text = "Update/Delete POI?")
+                        Text(text = "Update/Delete POI?", modifier = Modifier.padding(all = 8.dp))
                     },
                     text = {
                         TextField(
                             value = myPOI,
-                            onValueChange = { myPOI = it }
+                            onValueChange = { myPOI = it },
+                            shape = RoundedCornerShape(8.dp)
                         )
                     },
                     buttons = {
                         Row(
-                            modifier = Modifier.padding(all = 8.dp),
-                            horizontalArrangement = Arrangement.Center
+                            modifier = Modifier
+                                .padding(all = 8.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             Button(
                                 onClick = {
